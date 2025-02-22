@@ -19,7 +19,7 @@
         </div>
 
         <!-- 日期输入界面 -->
-        <div v-else-if="currentStep === 'dateInput'" class="step-container glass-card">
+        <div v-else-if="currentStep === 'dateInput'" class="step-container glass-card centered-content">
           <h2>请输入日期信息</h2>
           <div class="form-group">
             <div class="form-item">
@@ -58,7 +58,7 @@
         </div>
 
         <!-- 计划制定界面 -->
-        <div v-else-if="currentStep === 'planDate'" class="step-container glass-card">
+        <div v-else-if="currentStep === 'planDate'" class="step-container glass-card centered-content">
           <h2>生日聚会计划制定</h2>
           <div class="info-card">
             <div class="info-item">
@@ -101,7 +101,7 @@
         </div>
 
         <!-- 结果显示界面 -->
-        <div v-else-if="currentStep === 'result'" class="step-container glass-card">
+        <div v-else-if="currentStep === 'result'" class="step-container glass-card centered-content">
           <h2>计划结果</h2>
           <div class="result-info">
             <div class="info-item">
@@ -506,5 +506,13 @@ h2 {
 }
 
 /* end */
+
+.centered-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
 
 </style>
