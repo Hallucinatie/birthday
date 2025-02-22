@@ -73,8 +73,8 @@
             <el-input-number 
               v-model="daysInAdvance" 
               :min="1" 
-              :max="365"
-              class="number-input" 
+              :max="daysUntilNextBirthday" 
+              class="number-input"
             />
           </div>
           <Transition name="slide-up">
@@ -223,6 +223,10 @@ const nextStep = () => {
 }
 
 const resetPlanDate = () => {
+  // 如果默认的提前天数大于可用天数，则设置为可用天数
+  if (daysInAdvance.value > daysUntilNextBirthday.value) {
+    daysInAdvance.value = daysUntilNextBirthday.value
+  }
   currentStep.value = 'planDate'
 }
 
