@@ -56,7 +56,7 @@
             继续
           </el-button>
         </div>
-
+<!-- mqh修改的 -->
         <!-- 计划制定界面 -->
         <div v-else-if="currentStep === 'planDate'" class="step-container glass-card centered-content">
           <h2>生日聚会计划制定</h2>
@@ -71,35 +71,37 @@
               <span>距离今天：</span>
               <span class="highlight">{{ daysUntilNextBirthday }} 天</span>
             </div>
-          </div>
-          <div class="form-item">
-            <el-icon><AlarmClock /></el-icon>
-            <span>提前天数：</span>
-            <el-input-number 
-              v-model="daysInAdvance" 
-              :min="1" 
-              :max="daysUntilNextBirthday" 
+          
+            <div class="form-item">
+              <el-icon><AlarmClock /></el-icon>
+              <span>提前天数：</span>
+              <el-input-number 
+                v-model="daysInAdvance" 
+                :min="1" 
+                :max="daysUntilNextBirthday" 
               class="number-input"
-            />
-          </div>
-          <Transition name="slide-up">
-            <div v-if="planDate" class="result-card">
-              <p class="plan-date">
-                <el-icon><Calendar /></el-icon>
-                计划日期：<span class="highlight">{{ planDate }}</span>
-              </p>
-              <p v-if="isWorkday" class="adjust-notice">
-                <el-icon><Warning /></el-icon>
-                由于是工作日，已调整为最近的周六
-              </p>
+              />
             </div>
-          </Transition>
+            <Transition name="slide-up">
+              <div v-if="planDate" class="result-card">
+                <div class="info-item">
+                  <el-icon><Calendar /></el-icon>
+                  <span>计划日期：</span>
+                  <span class="highlight">{{ planDate }}</span>
+                </div>
+                <div v-if="isWorkday" class="info-item adjust-notice">
+                  <el-icon><Warning /></el-icon>
+                  <span>由于是工作日，已调整为最近的周六</span>
+                </div>
+              </div>
+            </Transition>
+          </div>
           <el-button type="primary" @click="nextStep" :disabled="!daysInAdvance">
             <el-icon class="button-icon"><Check /></el-icon>
             确认
           </el-button>
         </div>
-
+<!-- end -->
         <!-- 结果显示界面 -->
         <div v-else-if="currentStep === 'result'" class="step-container glass-card centered-content">
           <h2>计划结果</h2>
@@ -276,8 +278,8 @@ const buttonHover = ref(false)
 }
 
 .step-container {
-  padding: 40px;
-  margin: 20px;
+  padding: 40px 20px;
+  margin: 40px 20px;
   transition: all 0.3s ease;
 }
 
@@ -398,7 +400,7 @@ const buttonHover = ref(false)
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 10px 0;
+  margin: 0 0 20px 0;
 }
 
 .date-picker {
@@ -412,15 +414,15 @@ const buttonHover = ref(false)
 .info-card, .result-card {
   background: rgba(255, 255, 255, 0.5);
   border-radius: 16px;
-  padding: 20px;
-  margin: 20px 0;
+  padding: 0;
+  margin: 0 0 20px 0;
 }
 
 .info-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 10px 0;
+  margin: 20px 0;
 }
 
 .highlight {
