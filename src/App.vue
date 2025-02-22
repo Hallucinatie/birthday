@@ -4,13 +4,18 @@
     <div class="container">
       <Transition name="fade" mode="out-in">
         <!-- 欢迎界面 -->
-        <div v-if="currentStep === 'welcome'" class="step-container glass-card">
-          <h1>欢迎使用生日聚会计划便签</h1>
-          <p class="welcome-text">让我们一起规划一个完美的生日聚会吧！</p>
-          <el-button type="primary" @click="nextStep" class="welcome-button">
-            <el-icon class="button-icon"><ArrowRight /></el-icon>
-            开始规划
-          </el-button>
+        <div v-if="currentStep === 'welcome'" class="step-container glass-card welcome-container">
+          <div class="welcome-content">
+            <h1 class="welcome-title">欢迎使用生日聚会计划便签</h1>
+            <p class="welcome-text">让我们一起规划一个完美的生日聚会吧！</p>
+            <el-button type="primary" @click="nextStep" class="welcome-button" :class="{'button-hover': buttonHover}" 
+              @mouseenter="buttonHover = true" 
+              @mouseleave="buttonHover = false">
+              <el-icon class="button-icon"><ArrowRight /></el-icon>
+              开始规划
+            </el-button>
+          </div>
+          <div class="welcome-decoration"></div>
         </div>
 
         <!-- 日期输入界面 -->
@@ -236,6 +241,8 @@ const resetAll = () => {
   daysInAdvance.value = 7
   currentStep.value = 'welcome'
 }
+
+const buttonHover = ref(false)
 </script>
 
 <style scoped>
@@ -274,17 +281,112 @@ const resetAll = () => {
   transition: all 0.3s ease;
 }
 
-.welcome-text {
-  font-size: 1.2em;
-  color: var(--text-color);
-  margin: 20px 0;
+/* 欢迎界面，此部分是mqh修改的 */
+.welcome-container {
+  position: relative;
+  overflow: hidden;
+  padding: 60px 40px;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
 }
+
+.welcome-content {
+  position: relative;
+  z-index: 2;
+}
+
+.welcome-title {
+  font-size: 2.5em;
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 30px;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+
+.welcome-text {
+  font-size: 1.3em;
+  color: var(--text-color);
+  margin: 30px 0;
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out 0.3s forwards;
+}
+
 
 .welcome-button {
-  margin-top: 30px;
+  margin-top: 40px;
   font-size: 1.2em;
+  padding: 15px 40px !important;
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  border: none;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out 0.6s forwards;
+  transition: all 0.3s ease;
 }
 
+.button-hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(37, 99, 235, 0.3);
+}
+
+.welcome-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 90% 10%, var(--accent-color) 0%, transparent 20%),
+    radial-gradient(circle at 10% 90%, var(--primary-color) 0%, transparent 20%);
+  opacity: 0.1;
+  z-index: 1;
+  animation: pulse 8s ease-in-out infinite;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.15;
+  }
+}
+
+/* end */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -384,5 +486,25 @@ h2 {
   .info-card, .result-card {
     padding: 15px;
   }
+
+  /* mqh修改的 */
+  .welcome-container {
+    padding: 40px 20px;
+  }
+  
+  .welcome-title {
+    font-size: 2em;
+  }
+  
+  .welcome-text {
+    font-size: 1.1em;
+  }
+  
+  .welcome-button {
+    padding: 12px 30px !important;
+  }
 }
+
+/* end */
+
 </style>
