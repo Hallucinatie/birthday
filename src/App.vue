@@ -8,12 +8,22 @@
           <div class="welcome-content">
             <h1 class="welcome-title">欢迎使用生日聚会计划便签</h1>
             <p class="welcome-text">让我们一起规划一个完美的生日聚会吧！</p>
-            <el-button type="primary" @click="nextStep" class="welcome-button" :class="{'button-hover': buttonHover}" 
-              @mouseenter="buttonHover = true" 
-              @mouseleave="buttonHover = false">
-              <el-icon class="button-icon"><ArrowRight /></el-icon>
-              开始规划
-            </el-button>
+            <div class="welcome-buttons">
+              <el-button type="primary" @click="nextStep" class="welcome-button" :class="{'button-hover': buttonHover}" 
+                @mouseenter="buttonHover = true" 
+                @mouseleave="buttonHover = false">
+                <el-icon class="button-icon"><ArrowRight /></el-icon>
+                开始规划
+              </el-button>
+              <el-button v-if="savedPlans.length > 0" @click="viewSavedPlans" class="welcome-button view-saved-button" 
+                :class="{'button-hover': savedButtonHover}"
+                @mouseenter="savedButtonHover = true"
+                @mouseleave="savedButtonHover = false">
+                <el-icon class="button-icon"><Calendar /></el-icon>
+                查看已保存计划
+                <span class="plan-count">({{ savedPlans.length }})</span>
+              </el-button>
+            </div>
           </div>
           <div class="welcome-decoration"></div>
         </div>
@@ -132,9 +142,13 @@
               <el-icon class="button-icon"><RefreshLeft /></el-icon>
               重新制定
             </el-button>
-            <el-button type="primary" @click="nextStep">
+            <el-button type="primary" @click="savePlan">
               <el-icon class="button-icon"><Check /></el-icon>
-              确认完成
+              保存计划
+            </el-button>
+            <el-button type="success" @click="nextStep">
+              <el-icon class="button-icon"><ArrowRight /></el-icon>
+              完成
             </el-button>
           </div>
         </div>
@@ -146,10 +160,83 @@
             <el-icon class="success-icon"><SuccessFilled /></el-icon>
             <p>您的生日计划将在 <span class="highlight">{{ planDate }}</span> 制定</p>
           </div>
-          <el-button type="primary" @click="resetAll">
+          
+          <!-- 已保存的计划列表 -->
+          <div class="saved-plans" v-if="savedPlans.length > 0">
+            <h3>已保存的计划</h3>
+            <div class="plans-list">
+              <div v-for="plan in savedPlans" :key="plan.id" class="plan-item glass-card">
+                <div class="plan-info">
+                  <div class="plan-date">
+                    <el-icon><Calendar /></el-icon>
+                    <span>生日：{{ dayjs(plan.nextBirthday).format('YYYY年MM月DD日') }}</span>
+                  </div>
+                  <div class="plan-date">
+                    <el-icon><AlarmClock /></el-icon>
+                    <span>计划日期：{{ dayjs(plan.planDate).format('YYYY年MM月DD日') }}</span>
+                  </div>
+                  <div class="plan-created">
+                    <el-icon><Timer /></el-icon>
+                    <span>创建时间：{{ plan.createdAt }}</span>
+                  </div>
+                </div>
+                <div class="plan-actions">
+                  <el-button type="primary" size="small" @click="loadPlan(plan)">
+                    <el-icon><RefreshRight /></el-icon>
+                    加载
+                  </el-button>
+                  <el-button type="danger" size="small" @click="deletePlan(plan.id)">
+                    <el-icon><Delete /></el-icon>
+                    删除
+                  </el-button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <el-button type="primary" @click="resetAll" class="new-plan-button">
             <el-icon class="button-icon"><RefreshRight /></el-icon>
-            重新开始
+            制定新计划
           </el-button>
+        </div>
+
+        <!-- 查看已保存计划界面 -->
+        <div v-else-if="currentStep === 'savedPlans'" class="step-container glass-card">
+          <h2>已保存的计划</h2>
+          <div class="saved-plans-content">
+            <div class="saved-plans-list">
+              <div v-for="plan in savedPlans" :key="plan.id" class="saved-plan-item glass-card">
+                <div class="plan-info">
+                  <div class="plan-date">
+                    <el-icon><Calendar /></el-icon>
+                    <span>生日：{{ dayjs(plan.nextBirthday).format('YYYY年MM月DD日') }}</span>
+                  </div>
+                  <div class="plan-date">
+                    <el-icon><AlarmClock /></el-icon>
+                    <span>计划日期：{{ dayjs(plan.planDate).format('YYYY年MM月DD日') }}</span>
+                  </div>
+                  <div class="plan-created">
+                    <el-icon><Timer /></el-icon>
+                    <span>创建时间：{{ plan.createdAt }}</span>
+                  </div>
+                </div>
+                <div class="plan-actions">
+                  <el-button type="primary" size="small" @click="loadPlan(plan)">
+                    <el-icon><RefreshRight /></el-icon>
+                    加载
+                  </el-button>
+                  <el-button type="danger" size="small" @click="deletePlan(plan.id)">
+                    <el-icon><Delete /></el-icon>
+                    删除
+                  </el-button>
+                </div>
+              </div>
+            </div>
+            <el-button type="primary" @click="backToWelcome" class="back-to-welcome-button">
+              <el-icon class="button-icon"><ArrowLeft /></el-icon>
+              返回欢迎页面
+            </el-button>
+          </div>
         </div>
       </Transition>
     </div>
@@ -157,7 +244,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import dayjs from 'dayjs'
 import {
   Calendar,
@@ -169,17 +256,77 @@ import {
   RefreshLeft,
   RefreshRight,
   ArrowRight,
-  SuccessFilled
+  SuccessFilled,
+  Delete,
+  ArrowLeft
 } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 // 步骤控制
 const currentStep = ref('welcome')
-const steps = ['welcome', 'dateInput', 'planDate', 'result', 'end']
+const steps = ['welcome', 'dateInput', 'planDate', 'result', 'end', 'savedPlans']
 
 // 表单数据
 const birthDate = ref(null)
 const today = ref(dayjs().format('YYYY-MM-DD'))
 const daysInAdvance = ref(7)
+
+// 保存的计划列表
+const savedPlans = ref([])
+
+// 从本地存储加载数据
+const loadSavedPlans = () => {
+  const plans = localStorage.getItem('birthdayPlans')
+  if (plans) {
+    savedPlans.value = JSON.parse(plans)
+  }
+}
+
+// 初始化时加载数据
+loadSavedPlans()
+
+// 保存当前计划
+const savePlan = () => {
+  const newPlan = {
+    id: Date.now(), // 使用时间戳作为唯一ID
+    birthDate: birthDate.value,
+    nextBirthday: nextBirthdayDate.value,
+    planDate: planDate.value,
+    daysInAdvance: daysInAdvance.value,
+    createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
+  }
+  
+  savedPlans.value.push(newPlan)
+  localStorage.setItem('birthdayPlans', JSON.stringify(savedPlans.value))
+  
+  ElMessage({
+    message: '计划已保存',
+    type: 'success'
+  })
+}
+
+// 删除保存的计划
+const deletePlan = (planId) => {
+  savedPlans.value = savedPlans.value.filter(plan => plan.id !== planId)
+  localStorage.setItem('birthdayPlans', JSON.stringify(savedPlans.value))
+  
+  ElMessage({
+    message: '计划已删除',
+    type: 'success'
+  })
+}
+
+// 加载已保存的计划
+const loadPlan = (plan) => {
+  birthDate.value = plan.birthDate
+  daysInAdvance.value = plan.daysInAdvance
+  currentStep.value = 'result'
+}
+
+// 监听计划列表变化
+watch(savedPlans, (newPlans) => {
+  localStorage.setItem('birthdayPlans', JSON.stringify(newPlans))
+}, { deep: true })
 
 // 计算下次生日日期和天数
 const nextBirthdayDate = computed(() => {
@@ -245,6 +392,17 @@ const resetAll = () => {
 }
 
 const buttonHover = ref(false)
+const savedButtonHover = ref(false)
+
+// 查看已保存计划
+const viewSavedPlans = () => {
+  currentStep.value = 'savedPlans'
+}
+
+// 返回欢迎页面
+const backToWelcome = () => {
+  currentStep.value = 'welcome'
+}
 </script>
 
 <style scoped>
@@ -315,21 +473,34 @@ const buttonHover = ref(false)
   animation: fadeIn 0.8s ease-out 0.3s forwards;
 }
 
-
-.welcome-button {
+.welcome-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
   margin-top: 40px;
-  font-size: 1.2em;
-  padding: 15px 40px !important;
-  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
-  border: none;
-  opacity: 0;
-  animation: fadeInUp 0.8s ease-out 0.6s forwards;
-  transition: all 0.3s ease;
 }
 
-.button-hover {
-  transform: translateY(-3px);
-  box-shadow: 0 7px 20px rgba(37, 99, 235, 0.3);
+.welcome-button {
+  font-size: 1.2em;
+  padding: 15px 40px !important;
+  min-width: 200px;
+}
+
+.view-saved-button {
+  background: var(--accent-color) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.view-saved-button:hover {
+  background: var(--primary-color) !important;
+}
+
+.plan-count {
+  margin-left: 8px;
+  font-size: 0.9em;
+  opacity: 0.9;
 }
 
 .welcome-decoration {
@@ -363,17 +534,6 @@ const buttonHover = ref(false)
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -453,18 +613,76 @@ const buttonHover = ref(false)
   margin: 30px 0;
 }
 
-h1 {
-  font-size: 2.5em;
-  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 20px;
+/* 已保存的计划列表样式 */
+.saved-plans {
+  margin: 30px 0;
+  width: 100%;
 }
 
-h2 {
-  font-size: 2em;
+.saved-plans h3 {
+  margin-bottom: 20px;
   color: var(--text-color);
-  margin-bottom: 30px;
+  font-size: 1.5em;
+}
+
+.plans-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.plan-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.plan-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.plan-info {
+  flex: 1;
+}
+
+.plan-date, .plan-created {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0;
+  color: var(--text-color);
+}
+
+.plan-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.new-plan-button {
+  margin-top: 20px;
+}
+
+/* 滚动条样式 */
+.plans-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.plans-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.plans-list::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 3px;
 }
 
 @media (max-width: 768px) {
@@ -505,6 +723,31 @@ h2 {
   .welcome-button {
     padding: 12px 30px !important;
   }
+
+  .plan-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .plan-actions {
+    margin-top: 15px;
+    justify-content: flex-end;
+  }
+  
+  .plans-list {
+    max-height: 300px;
+  }
+
+  .welcome-buttons {
+    gap: 10px;
+    margin-top: 30px;
+  }
+
+  .welcome-button {
+    font-size: 1.1em;
+    padding: 12px 30px !important;
+    min-width: 180px;
+  }
 }
 
 /* end */
@@ -515,6 +758,38 @@ h2 {
   align-items: center;
   justify-content: center;
   text-align: center;
+}
+
+.saved-plans-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.saved-plans-list {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.saved-plan-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.saved-plan-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.back-to-welcome-button {
+  margin-top: 20px;
 }
 
 </style>
