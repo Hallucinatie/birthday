@@ -103,6 +103,16 @@
                   <el-icon><Warning /></el-icon>
                   <span>由于是工作日，已调整为最近的周六</span>
                 </div>
+                <!-- 计划日期在生日之后的提示 -->
+                <div v-if="isPlanDateAfterBirthday" class="info-item adjust-notice">
+                  <el-icon><Warning /></el-icon>
+                  <span>计划日期已经超过生日日期！</span>
+                </div>
+                <!-- 所有可能日期都已过期的提示 -->
+                <div v-if="allPossibleDatesExpired" class="info-item adjust-notice">
+                  <el-icon><Warning /></el-icon>
+                  <span>所有可能的计划日期都已过期，建议立即开始计划！下次记得早点准备哦～</span>
+                </div>
               </div>
             </Transition>
           </div>
@@ -131,25 +141,44 @@
               <span>提前准备天数：</span>
               <span class="highlight">{{ daysInAdvance }} 天</span>
             </div>
+            
+            <!-- 根据情况显示不同的计划日期信息 -->
             <div class="info-item">
               <el-icon><Calendar /></el-icon>
               <span>计划制定日期：</span>
-              <span class="highlight">{{ planDate }}</span>
+              <template v-if="allPossibleDatesExpired">
+                <span class="highlight warning">建议立即开始计划</span>
+              </template>
+              <span v-else class="highlight">{{ planDate }}</span>
             </div>
           </div>
+
+          <!-- 根据情况显示不同的按钮组 -->
           <div class="button-group">
-            <el-button @click="resetPlanDate">
-              <el-icon class="button-icon"><RefreshLeft /></el-icon>
-              重新制定
-            </el-button>
-            <el-button type="primary" @click="savePlan">
-              <el-icon class="button-icon"><Check /></el-icon>
-              保存计划
-            </el-button>
-            <el-button type="success" @click="nextStep">
-              <el-icon class="button-icon"><ArrowRight /></el-icon>
-              完成
-            </el-button>
+            <template v-if="allPossibleDatesExpired">
+              <el-button type="danger" @click="startImmediatePlan">
+                <el-icon class="button-icon"><Timer /></el-icon>
+                立即开始计划
+              </el-button>
+              <el-button @click="resetPlanDate">
+                <el-icon class="button-icon"><RefreshLeft /></el-icon>
+                重新选择日期
+              </el-button>
+            </template>
+            <template v-else>
+              <el-button @click="resetPlanDate">
+                <el-icon class="button-icon"><RefreshLeft /></el-icon>
+                重新制定
+              </el-button>
+              <el-button type="primary" @click="savePlan">
+                <el-icon class="button-icon"><Check /></el-icon>
+                保存计划
+              </el-button>
+              <el-button type="success" @click="nextStep">
+                <el-icon class="button-icon"><ArrowRight /></el-icon>
+                完成
+              </el-button>
+            </template>
           </div>
         </div>
 
@@ -374,6 +403,32 @@ const isWorkday = computed(() => {
   return dayOfWeek > 0 && dayOfWeek < 6
 })
 
+// 检查计划日期是否在生日之后
+const isPlanDateAfterBirthday = computed(() => {
+  if (!planDate.value || !nextBirthdayDate.value) return false
+  return dayjs(planDate.value).isAfter(dayjs(nextBirthdayDate.value))
+})
+
+// 检查所有可能的计划日期是否都已过期
+const allPossibleDatesExpired = computed(() => {
+  if (!originalPlanDate.value || !nextBirthdayDate.value) return false
+  const originalDate = originalPlanDate.value
+  const dayOfWeek = originalDate.day()
+  
+  // 如果是工作日，检查前后的周六
+  if (dayOfWeek > 0 && dayOfWeek < 6) {
+    let previousSaturday = originalDate.subtract(dayOfWeek + 1, 'day')
+    let nextSaturday = originalDate.add(6 - dayOfWeek, 'day')
+    
+    // 检查这两个周六是否都在生日之后或者都已经过期
+    return (previousSaturday.isAfter(dayjs(nextBirthdayDate.value)) || 
+            previousSaturday.isBefore(dayjs(today.value))) &&
+           (nextSaturday.isAfter(dayjs(nextBirthdayDate.value)) || 
+            nextSaturday.isBefore(dayjs(today.value)))
+  }
+  return false
+})
+
 // 方法
 const nextStep = () => {
   const currentIndex = steps.indexOf(currentStep.value)
@@ -408,6 +463,30 @@ const viewSavedPlans = () => {
 // 返回欢迎页面
 const backToWelcome = () => {
   currentStep.value = 'welcome'
+}
+
+// 添加立即开始计划的方法
+const startImmediatePlan = () => {
+  // 将计划日期设置为今天
+  const newPlan = {
+    id: Date.now(),
+    birthDate: birthDate.value,
+    nextBirthday: nextBirthdayDate.value,
+    planDate: dayjs().format('YYYY-MM-DD'), // 使用今天作为计划日期
+    daysInAdvance: daysUntilNextBirthday.value, // 剩余天数作为准备时间
+    createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    isImmediate: true // 标记为立即计划
+  }
+  
+  savedPlans.value.push(newPlan)
+  localStorage.setItem('birthdayPlans', JSON.stringify(savedPlans.value))
+  
+  ElMessage({
+    message: '已创建立即计划，请尽快开始准备！',
+    type: 'success'
+  })
+  
+  nextStep()
 }
 </script>
 
@@ -799,6 +878,30 @@ const backToWelcome = () => {
   color: var(--text-color);
   margin-bottom: 15px;
   background: rgba(255, 255, 255, 0.5);
+}
+
+.expired-notice {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(245, 108, 108, 0.1);
+  border-radius: 8px;
+  color: #f56c6c;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+}
+
+.warning {
+  color: #f56c6c !important;
+  font-weight: bold;
+}
+
+.button-group {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
 }
 
 </style>
