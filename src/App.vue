@@ -553,14 +553,13 @@ const backToWelcome = () => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  margin: 30px 0;
+  margin: 20px 0;
 }
 
 .form-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 20px 0;
 }
 
 .date-picker {
@@ -573,9 +572,8 @@ const backToWelcome = () => {
 
 .info-card, .result-card {
   background: rgba(255, 255, 255, 0.5);
-  border-radius: 16px;
-  padding: 0;
-  margin: 0 0 20px 0;
+  border-radius: 15px;
+  margin: 0 0 10px 0;
 }
 
 .info-item {
@@ -703,10 +701,6 @@ const backToWelcome = () => {
     font-size: 1.5em;
   }
 
-  .info-card, .result-card {
-    padding: 15px;
-  }
-
   /* mqh修改的 */
   .welcome-container {
     padding: 40px 20px;
@@ -781,6 +775,7 @@ const backToWelcome = () => {
   background: rgba(255, 255, 255, 0.5);
   border-radius: 12px;
   transition: all 0.3s ease;
+  margin-top: 20px;
 }
 
 .saved-plan-item:hover {
@@ -790,6 +785,14 @@ const backToWelcome = () => {
 
 .back-to-welcome-button {
   margin-top: 20px;
+}
+
+.result-text {
+  display: flex;
+  align-items: center;
+  color: var(--text-color);
+  margin-bottom: 15px;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 </style>
