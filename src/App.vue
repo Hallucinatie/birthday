@@ -362,9 +362,15 @@ const planDate = computed(() => {
   return date.format('YYYY-MM-DD')
 })
 
+// 修改isWorkday的计算逻辑
+const originalPlanDate = computed(() => {
+  if (!nextBirthdayDate.value || !daysInAdvance.value) return null
+  return dayjs(nextBirthdayDate.value).subtract(daysInAdvance.value, 'day')
+})
+
 const isWorkday = computed(() => {
-  if (!planDate.value) return false
-  const dayOfWeek = dayjs(planDate.value).day()
+  if (!originalPlanDate.value) return false
+  const dayOfWeek = originalPlanDate.value.day()
   return dayOfWeek > 0 && dayOfWeek < 6
 })
 
