@@ -56,16 +56,16 @@
             </div>
           </div>
           <Transition name="slide-up">
-            <div v-if="daysUntilNextBirthday !== null" class="result-text">
+            <div v-if="daysUntilNextBirthday !== null" class="result-card">
               <el-icon><Bell /></el-icon>
               距离下次生日还有 <span class="highlight">{{ daysUntilNextBirthday }}</span> 天
+              <!-- mqh -->
+              <div v-if=" isBirthDateBeforeToday" class="info-item adjust-notice">
+                    <el-icon><Warning /></el-icon>
+                    <span>出生晚于今天！系统将仅默认您选择的出生月日</span>
+              </div>
+              <!-- end -->
             </div>
-            <!-- mqh -->
-            <div v-if=" isBirthDateBeforeToday" class="info-item adjust-notice">
-                  <el-icon><Warning /></el-icon>
-                  <span>出生晚于今天！系统将仅默认您选择的出生月日</span>
-            </div>
-            <!-- end -->
           </Transition>
           <el-button type="primary" @click="nextStep" :disabled="!birthDate || !today">
             <el-icon class="button-icon"><ArrowRight /></el-icon>
@@ -417,7 +417,7 @@ const isPlanDateAfterBirthday = computed(() => {
 // 检查出生日期是否在当前日期之前
 const isBirthDateBeforeToday = computed(() => {
   if (!birthDate.value) return false
-  return dayjs(birthDate.value).isBefore(dayjs(today.value))
+  return dayjs(birthDate.value).isAfter(dayjs(today.value))
 })
 // 检查所有可能的计划日期是否都已过期
 const allPossibleDatesExpired = computed(() => {
