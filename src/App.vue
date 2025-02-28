@@ -64,6 +64,10 @@
                     <el-icon><Warning /></el-icon>
                     <span>出生晚于今天！系统将仅默认您选择的出生月日</span>
               </div>
+              <div v-if="isBirthDateLeapYear" class="info-item adjust-notice">
+                    <el-icon><Warning /></el-icon>
+                    <span>出生日期是2月29日，系统将默认为您在下一个2月28日过生日</span>
+              </div>
               <!-- end -->
             </div>
           </Transition>
@@ -368,7 +372,9 @@ const nextBirthdayDate = computed(() => {
   if (!birthDate.value || !today.value) return null
   const birth = dayjs(birthDate.value)
   const todayDate = dayjs(today.value)
-  let nextBirthday = dayjs(todayDate).set('month', birth.month()).set('date', birth.date())
+  let nextBirthday = dayjs(todayDate)
+  .set('month', birth.month())
+  .set('date',  isLeapBirthday ? 28 : birth.date()) // 2月29日调整为2月28日
   if (nextBirthday.isBefore(todayDate)) {
     nextBirthday = nextBirthday.add(1, 'year')
   }
@@ -408,7 +414,8 @@ const isWorkday = computed(() => {
   const dayOfWeek = originalPlanDate.value.day()
   return dayOfWeek > 0 && dayOfWeek < 6
 })
-
+// 检查是否是2月29日
+const isLeapBirthday = birth.month() === 1 && birth.date() === 29 
 // 检查计划日期是否在生日之后
 const isPlanDateAfterBirthday = computed(() => {
   if (!planDate.value || !nextBirthdayDate.value) return false
@@ -418,6 +425,11 @@ const isPlanDateAfterBirthday = computed(() => {
 const isBirthDateBeforeToday = computed(() => {
   if (!birthDate.value) return false
   return dayjs(birthDate.value).isAfter(dayjs(today.value))
+})
+// 检查出生日期是否是2月29日
+const isBirthDateLeapYear = computed(() => {
+  if (!birthDate.value) return false
+  return dayjs(birthDate.value).isLeapYear()
 })
 // 检查所有可能的计划日期是否都已过期
 const allPossibleDatesExpired = computed(() => {
@@ -429,7 +441,6 @@ const allPossibleDatesExpired = computed(() => {
   if (dayOfWeek > 0 && dayOfWeek < 6) {
     let previousSaturday = originalDate.subtract(dayOfWeek + 1, 'day')
     let nextSaturday = originalDate.add(6 - dayOfWeek, 'day')
-    
     // 检查这两个周六是否都在生日之后或者都已经过期
     return (previousSaturday.isAfter(dayjs(nextBirthdayDate.value)) || 
             previousSaturday.isBefore(dayjs(today.value))) &&
