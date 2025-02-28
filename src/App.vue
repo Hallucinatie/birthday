@@ -1,6 +1,7 @@
 <template>
   <div class="app-container">
     <div class="background-decoration"></div>
+    <!-- 主要布局部分，作者：马千惠。 -->
     <div class="container">
       <Transition name="fade" mode="out-in">
         <!-- 欢迎界面 -->
@@ -199,7 +200,7 @@
             <el-icon class="success-icon"><SuccessFilled /></el-icon>
             <p>您的生日计划将在 <span class="highlight">{{ planDate }}</span> 制定</p>
           </div>
-          
+          <!-- 结束界面中，显示已保存的计划 。作者：侯嘉琪。 -->
           <!-- 已保存的计划列表 -->
           <div class="saved-plans" v-if="savedPlans.length > 0">
             <h3>已保存的计划</h3>
@@ -238,7 +239,8 @@
             制定新计划
           </el-button>
         </div>
-
+        
+        <!-- 查看已保存计划界面 ，作者：侯嘉琪。 -->
         <!-- 查看已保存计划界面 -->
         <div v-else-if="currentStep === 'savedPlans'" class="step-container glass-card">
           <h2>已保存的计划</h2>
@@ -300,7 +302,8 @@ import {
   ArrowLeft
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-
+// 主要逻辑部分代码，主要使用dayjs这个库，作者：侯嘉琪。
+// 框架构建，作者：侯嘉琪。
 // 步骤控制
 const currentStep = ref('welcome')
 const steps = ['welcome', 'dateInput', 'planDate', 'result', 'end', 'savedPlans']
@@ -414,13 +417,19 @@ const isWorkday = computed(() => {
   const dayOfWeek = originalPlanDate.value.day()
   return dayOfWeek > 0 && dayOfWeek < 6
 })
+
+
 // 检查是否是2月29日
 const isLeapBirthday = birth.month() === 1 && birth.date() === 29 
+
+
+// 测试时发现问题，设置两个计算属性，分别检查计划日期是否在生日之后，以及所有可能的计划日期是否都已过期。作者：马千惠。
 // 检查计划日期是否在生日之后
 const isPlanDateAfterBirthday = computed(() => {
   if (!planDate.value || !nextBirthdayDate.value) return false
   return dayjs(planDate.value).isAfter(dayjs(nextBirthdayDate.value))
 })
+
 // 检查出生日期是否在当前日期之前
 const isBirthDateBeforeToday = computed(() => {
   if (!birthDate.value) return false
@@ -510,7 +519,7 @@ const startImmediatePlan = () => {
   nextStep()
 }
 </script>
-
+<!-- 主要样式部分，作者：马千惠。 -->
 <style scoped>
 .app-container {
   min-height: 100vh;
@@ -603,6 +612,7 @@ const startImmediatePlan = () => {
   background: var(--primary-color) !important;
 }
 
+/* 补充样式，作者：侯嘉琪。 */
 .plan-count {
   margin-left: 8px;
   font-size: 0.9em;
