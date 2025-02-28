@@ -67,7 +67,7 @@
               </div>
               <div v-if="isBirthDateLeapYear" class="info-item adjust-notice">
                     <el-icon><Warning /></el-icon>
-                    <span>出生日期是2月29日，系统将默认为您在下一个2月28日过生日</span>
+                    <span>出生日期是2月29日，系统将默认为您在下一个3月1日过生日</span>
               </div>
               <!-- end -->
             </div>
@@ -375,9 +375,7 @@ const nextBirthdayDate = computed(() => {
   if (!birthDate.value || !today.value) return null
   const birth = dayjs(birthDate.value)
   const todayDate = dayjs(today.value)
-  let nextBirthday = dayjs(todayDate)
-  .set('month', birth.month())
-  .set('date',  isLeapBirthday ? 28 : birth.date()) // 2月29日调整为2月28日
+  let nextBirthday = dayjs(todayDate).set('month', birth.month()).set('date', birth.date())
   if (nextBirthday.isBefore(todayDate)) {
     nextBirthday = nextBirthday.add(1, 'year')
   }
@@ -419,8 +417,15 @@ const isWorkday = computed(() => {
 })
 
 
-// 检查是否是2月29日
-const isLeapBirthday = birth.month() === 1 && birth.date() === 29 
+// 检查出生日期是否是2月29日
+const isBirthDateLeapYear = computed(() => {
+  if (!birthDate.value) return false
+  const birth = dayjs(birthDate.value)
+  const year = birth.year()
+  // 检查是否为闰年
+  const isLeapYear = (year) => (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)
+  return isLeapYear(year) && birth.date() === 29
+})
 
 
 // 测试时发现问题，设置两个计算属性，分别检查计划日期是否在生日之后，以及所有可能的计划日期是否都已过期。作者：马千惠。
@@ -435,11 +440,7 @@ const isBirthDateBeforeToday = computed(() => {
   if (!birthDate.value) return false
   return dayjs(birthDate.value).isAfter(dayjs(today.value))
 })
-// 检查出生日期是否是2月29日
-const isBirthDateLeapYear = computed(() => {
-  if (!birthDate.value) return false
-  return dayjs(birthDate.value).isLeapYear()
-})
+
 // 检查所有可能的计划日期是否都已过期
 const allPossibleDatesExpired = computed(() => {
   if (!originalPlanDate.value || !nextBirthdayDate.value) return false
